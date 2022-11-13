@@ -11,6 +11,11 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+import joptsimple.OptionSpec;
+
+import static java.util.Arrays.asList;
 
 public class Server {
 
@@ -178,17 +183,20 @@ public class Server {
 		}
 	}
 
-	public Server(int port, String directory) {
+	public Server(int port, String directory, boolean verbose) {
+
 		try {
 			this.directory = directory;
 			//start server
 			server = new ServerSocket(port);
-			System.out.println("Server started");
+			if(verbose == true) {
+				System.out.println("Server started");
 
-			System.out.println("waiting for client...");
-			//create a socket specifically for client if initiate connection
-			socket = server.accept();
-			System.out.println("Client accepted");
+				System.out.println("waiting for client...");
+			}
+				//create a socket specifically for client if initiate connection
+				socket = server.accept();
+				System.out.println("Client accepted");
 
 			//attributes to read request from client
 			String line = "";
@@ -206,7 +214,9 @@ public class Server {
 			separator = line.split(" ");
 			requestMethod = separator[0];
 			file = separator[1].replace("HTTP/1.0", "");
-			System.out.println(requestMethod);
+			if(verbose == true) {
+				System.out.println(requestMethod);
+			}
 			System.out.println(file);
 
 
@@ -256,8 +266,34 @@ public class Server {
 
 
 
+	//Httpfs class
 	public static void main(String args[])
 	{
-		Server server = new Server(80, "C:/Users/Cedric Paradis/Documents/");
+		//Create parser with joptsimple library
+		OptionParser parser = new OptionParser();
+		parser.acceptsAll(asList("httpfs"), "HTTPFS");
+		if(!args[0].equals("httpfs")){
+			System.out.println("invalid command ");
+			System.exit(0);
+
+		}
+		//Verbose option
+		OptionSpec<Void> verbose_args = parser.accepts("v");
+		boolean verbose = false;
+
+		//port option
+		OptionSpec<Integer> port_arg = parser.accepts("p").withRequiredArg().ofType(Integer.class);
+		int port = 80;
+
+		//directory option
+		OptionSpec<String> dir_arg = parser.accepts("d").withRequiredArg().ofType(String.class);
+		String dir = "";
+
+		//parse arguments
+		OptionSet opts = parser.parse(args);
+		port = opts.valueOf(port_arg);
+		verbose = opts.has(verbose_args);
+		dir = String.valueOf(opts.has(dir_arg));
+		Server server = new Server(port, dir, verbose);
 	}
 }
