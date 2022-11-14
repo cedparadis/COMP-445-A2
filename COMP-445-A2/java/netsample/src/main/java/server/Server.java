@@ -293,7 +293,7 @@ public class Server {
 		OptionSet opts = parser.parse(args);
 		port = opts.valueOf(port_arg);
 		verbose = opts.has(verbose_args);
-		dir = String.valueOf(opts.has(dir_arg));
+		dir = opts.valueOf(dir_arg);
 		Server server = new Server(port, dir, verbose);
 	}
 }
